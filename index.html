@@ -278,7 +278,7 @@
         <div class="transactions-container">
             <div class="transactions-header">
                 <h2>السجل التفصيلي</h2>
-                <div class="filter-buttons">
+                <div class="filter-buttons" id="filterButtonsContainer">
                     <button class="active" onclick="filterTransactions('all', this)">الكل</button>
                     <button onclick="filterTransactions('income', this)">الدخل</button>
                     <button onclick="filterTransactions('expense', this)">المصاريف</button>
@@ -339,7 +339,10 @@
             };
 
             transactions.push(newTransaction);
-            saveAndRender();
+            
+            // حفظ وتحديث الجدول مع الحفاظ على الفلتر الحالي أو العودة للكل
+            saveAndRender(currentFilter);
+            
             form.reset();
             document.getElementById('date').valueAsDate = new Date();
             submitBtn.classList.remove('btn-income');
@@ -349,10 +352,10 @@
         // حذف حركة
         function deleteTransaction(id) {
             transactions = transactions.filter(t => t.id !== id);
-            saveAndRender();
+            saveAndRender(currentFilter);
         }
 
-        // حفظ البيانات وعرضها
+        // حفظ البيانات في LocalStorage وتحديث العرض
         function saveAndRender(filter = 'all') {
             localStorage.setItem('my_wallet_transactions', JSON.stringify(transactions));
             renderTransactions(filter);
@@ -376,12 +379,14 @@
             document.getElementById('netBalance').textContent = net.toLocaleString('en-US', {minimumFractionDigits: 2}) + ' ج.م';
         }
 
-        // عرض جدول الحركات
+        // تصفية وعرض جدول الحركات
         let currentFilter = 'all';
         function filterTransactions(type, btn) {
             currentFilter = type;
             document.querySelectorAll('.filter-buttons button').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
+            if (btn) {
+                btn.classList.add('active');
+            }
             renderTransactions(type);
         }
 
@@ -390,12 +395,12 @@
             listEl.innerHTML = '';
 
             let filtered = transactions;
-            if (filter !== 'all') {
+            if (filter && filter !== 'all') {
                 filtered = transactions.filter(t => t.type === filter);
             }
 
-            // ترتيب من الأحدث للأقدم
-            filtered.sort((a, b) => new Date(b.date) - new Date(new Date(a.date)));
+            // ترتيب من الأحدث للأقدم حسب التاريخ
+            filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
 
             if (filtered.length === 0) {
                 listEl.innerHTML = `<tr><td colspan="5" class="empty-state">لا توجد بيانات مسجلة حالياً</td></tr>`;
@@ -418,9 +423,12 @@
             });
         }
 
-        // التشغيل الأولي
-        renderTransactions();
-        updateSummary();
+        // التشغيل الأولي عند فتح الصفحة (إجبار العرض على "الكل")
+        window.addEventListener('DOMContentLoaded', () => {
+            currentFilter = 'all';
+            const allBtn = document.querySelector('.filter-buttons button');
+            filterTransactions('all', allBtn);
+        });
     </script>
 </body>
 </html>
