@@ -41,7 +41,7 @@
             display: block;
         }
 
-        /* شاشة تسجيل الدخول / إنشاء حساب */
+        /* كارد تسجيل الدخول واستعادة المرور */
         .auth-card {
             background: #fff;
             max-width: 420px;
@@ -74,6 +74,22 @@
         .auth-tab.active {
             color: var(--primary);
             border-bottom-color: var(--primary);
+        }
+
+        .forgot-link {
+            text-align: left;
+            margin-top: 8px;
+            margin-bottom: 15px;
+        }
+        .forgot-link a {
+            color: var(--primary);
+            font-size: 0.85rem;
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .forgot-link a:hover {
+            text-decoration: underline;
         }
 
         /* شريط التنقل العلوي */
@@ -222,7 +238,7 @@
         .btn:hover { background: #1d4ed8; }
         .btn-income { background: var(--success); }
         .btn-income:hover { background: #15803d; }
-        .btn-warning { background: var(--warning); display: none; margin-top: 8px; }
+        .btn-warning { background: var(--warning); margin-top: 8px; }
         .btn-warning:hover { background: #b45309; }
 
         /* الجداول وسجلات البيانات */
@@ -301,8 +317,14 @@
             text-align: center;
             margin-top: 10px;
         }
+        .success-msg {
+            color: var(--success);
+            font-size: 0.85rem;
+            text-align: center;
+            margin-top: 10px;
+        }
 
-        /* نافذة تعديل الحساب (Modal) */
+        /* نافذة تعديل الحساب للأدمن (Modal) */
         .modal {
             display: none;
             position: fixed;
@@ -347,9 +369,71 @@
                         <label for="authPassword">كلمة المرور</label>
                         <input type="password" id="authPassword" required placeholder="••••••••">
                     </div>
+                    
+                    <!-- رابط الانتقال لصفحة نسيت كلمة المرور -->
+                    <div class="forgot-link" id="forgotPasswordContainer">
+                        <a onclick="showForgotPasswordStep1()">نسيت كلمة المرور؟</a>
+                    </div>
+
                     <div id="authError" class="error-msg"></div>
                     <button type="submit" class="btn" id="authSubmitBtn" style="margin-top: 15px;">دخول</button>
                 </form>
+            </div>
+        </div>
+
+        <!-- ================= صفحة استعادة كلمة المرور (صفحة مستقلة بالخطوات) ================= -->
+        <div id="forgotPasswordPage" class="page">
+            <div class="auth-card">
+                <h2>استعادة كلمة المرور</h2>
+                
+                <!-- الخطوة الأولى: إدخال الإيميل والتحقق منه -->
+                <div id="forgotStep1">
+                    <p style="color: var(--gray); font-size: 0.9rem; margin-bottom: 15px; text-align: center;">
+                        أدخل البريد الإلكتروني المسجل لحسابك للبحث عنه:
+                    </p>
+                    <form onsubmit="verifyForgotEmail(event)">
+                        <div class="form-group">
+                            <label for="verifyEmailInput">البريد الإلكتروني</label>
+                            <input type="email" id="verifyEmailInput" required placeholder="example@domain.com">
+                        </div>
+                        <div id="verifyError" class="error-msg"></div>
+                        <button type="submit" class="btn" style="margin-top: 10px;">التالي</button>
+                        <button type="button" class="btn btn-warning" style="width:100%; display:block;" onclick="backToLogin()">العودة لتسجيل الدخول</button>
+                    </form>
+                </div>
+
+                <!-- الخطوة الثانية: كتابة الرقم السري الجديد -->
+                <div id="forgotStep2" style="display: none;">
+                    <p style="color: var(--success); font-size: 0.9rem; margin-bottom: 15px; text-align: center;">
+                        تم التحقق من الحساب! أدخل كلمة المرور الجديدة:
+                    </p>
+                    <form onsubmit="executeNewPassword(event)">
+                        <div class="form-group">
+                            <label for="newPasswordInput">كلمة المرور الجديدة</label>
+                            <input type="password" id="newPasswordInput" required placeholder="••••••••">
+                        </div>
+                        <div id="resetError" class="error-msg"></div>
+                        <button type="submit" class="btn btn-income" style="margin-top: 10px;">حفظ وتغيير الرقم السري</button>
+                    </form>
+                </div>
+
+                <!-- الخطوة الثالثة: خيارات ما بعد تغيير كلمة المرور (استمرار أو خروج) -->
+                <div id="forgotStep3" style="display: none; text-align: center;">
+                    <div style="font-size: 3rem; color: var(--success); margin-bottom: 10px;">
+                        <i class="fa-solid fa-circle-check"></i>
+                    </div>
+                    <h3 style="color: var(--dark); margin-bottom: 10px; font-size: 1.2rem;">تم تغيير الرقم السري بنجاح!</h3>
+                    <p style="color: var(--gray); font-size: 0.9rem; margin-bottom: 20px;">
+                        كيف تريد المتابعة الآن؟
+                    </p>
+                    <button type="button" class="btn btn-income" style="margin-bottom: 10px;" onclick="continueAfterReset()">
+                        <i class="fa-solid fa-right-to-bracket"></i> استمرار والدخول للحساب مباشرة
+                    </button>
+                    <button type="button" class="btn btn-warning" style="width:100%; display:block;" onclick="backToLogin()">
+                        <i class="fa-solid fa-right-from-bracket"></i> الخروج والعودة لتسجيل الدخول
+                    </button>
+                </div>
+
             </div>
         </div>
 
@@ -492,7 +576,7 @@
 
     </div>
 
-    <!-- نافذة تعديل بيانات الحساب (Modal) -->
+    <!-- نافذة تعديل بيانات الحساب للأدمن (Modal) -->
     <div id="editUserModal" class="modal">
         <div class="modal-content">
             <h3 style="margin-bottom: 15px; color: var(--primary);">تعديل بيانات الحساب</h3>
@@ -507,23 +591,22 @@
                     <input type="text" id="editUserPasswordInput" required>
                 </div>
                 <button type="submit" class="btn" style="margin-bottom: 8px;">تحديث الحساب</button>
-                <button type="button" class="btn btn-warning" style="display:block;" onclick="closeEditModal()">إلغاء</button>
+                <button type="button" class="btn btn-warning" style="width:100%; display:block;" onclick="closeEditModal()">إلغاء</button>
             </form>
         </div>
     </div>
 
     <script>
-        // إيميل المسؤول الرئيسي وكلمة المرور الافتراضية الخاصة بك
         const ADMIN_EMAIL = "ahmed.adelgin@gmail.com"; 
         const ADMIN_DEFAULT_PASS = "0178298806";
 
         let currentUserEmail = null;
+        let forgotTargetEmail = null; 
         let isRegisterMode = false;
         let currentFilter = 'all';
 
         document.getElementById('date').valueAsDate = new Date();
 
-        // تهيئة حساب الأدمن التلقائي إن لم يكن موجوداً
         function ensureAdminAccount() {
             let users = JSON.parse(localStorage.getItem('app_email_users')) || {};
             if (!users[ADMIN_EMAIL]) {
@@ -539,12 +622,16 @@
             event.target.classList.add('active');
             
             const submitBtn = document.getElementById('authSubmitBtn');
+            const forgotLink = document.getElementById('forgotPasswordContainer');
+
             if (isRegisterMode) {
                 submitBtn.textContent = 'إنشاء حساب جديد';
                 submitBtn.classList.add('btn-income');
+                forgotLink.style.display = 'none';
             } else {
                 submitBtn.textContent = 'دخول';
                 submitBtn.classList.remove('btn-income');
+                forgotLink.style.display = 'block';
             }
             document.getElementById('authError').textContent = '';
         }
@@ -584,6 +671,75 @@
             }
         }
 
+        // ================= خطوات استعادة كلمة المرور =================
+        function showForgotPasswordStep1() {
+            document.getElementById('authPage').classList.remove('active');
+            document.getElementById('forgotPasswordPage').classList.add('active');
+            document.getElementById('forgotStep1').style.display = 'block';
+            document.getElementById('forgotStep2').style.display = 'none';
+            document.getElementById('forgotStep3').style.display = 'none';
+            document.getElementById('verifyEmailInput').value = '';
+            document.getElementById('verifyError').textContent = '';
+        }
+
+        function verifyForgotEmail(e) {
+            e.preventDefault();
+            const email = document.getElementById('verifyEmailInput').value.trim().toLowerCase();
+            const errorEl = document.getElementById('verifyError');
+
+            let users = JSON.parse(localStorage.getItem('app_email_users')) || {};
+
+            if (!users[email]) {
+                errorEl.textContent = 'عذراً، هذا البريد الإلكتروني غير مسجل لدينا!';
+                return;
+            }
+
+            forgotTargetEmail = email;
+            errorEl.textContent = '';
+            document.getElementById('forgotStep1').style.display = 'none';
+            document.getElementById('forgotStep2').style.display = 'block';
+            document.getElementById('newPasswordInput').value = '';
+            document.getElementById('resetError').textContent = '';
+        }
+
+        function executeNewPassword(e) {
+            e.preventDefault();
+            const newPassword = document.getElementById('newPasswordInput').value.trim();
+            const errorEl = document.getElementById('resetError');
+
+            let users = JSON.parse(localStorage.getItem('app_email_users')) || {};
+
+            if (!users[forgotTargetEmail]) {
+                errorEl.textContent = 'حدث خطأ ما، يرجى إعادة المحاولة.';
+                return;
+            }
+
+            // حفظ الرقم السري الجديد
+            users[forgotTargetEmail].password = newPassword;
+            localStorage.setItem('app_email_users', JSON.stringify(users));
+
+            // الانتقال للخطوة الثالثة (خيارات ما بعد التغيير: استمرار أو خروج)
+            document.getElementById('forgotStep2').style.display = 'none';
+            document.getElementById('forgotStep3').style.display = 'block';
+        }
+
+        // اختيار الاستمرار والدخول المباشر للحساب
+        function continueAfterReset() {
+            if (forgotTargetEmail) {
+                currentUserEmail = forgotTargetEmail;
+                localStorage.setItem('current_logged_email', currentUserEmail);
+                initApp();
+            } else {
+                backToLogin();
+            }
+        }
+
+        function backToLogin() {
+            forgotTargetEmail = null;
+            document.getElementById('forgotPasswordPage').classList.remove('active');
+            document.getElementById('authPage').classList.add('active');
+        }
+
         function logout() {
             currentUserEmail = null;
             localStorage.removeItem('current_logged_email');
@@ -595,8 +751,9 @@
             const savedEmail = localStorage.getItem('current_logged_email');
             if (savedEmail) {
                 let users = JSON.parse(localStorage.getItem('app_email_users')) || {};
-                if (users[savedEmail] && !users[savedEmail].banned) {
-                    currentUserEmail = savedEmail;
+                const cleanEmail = savedEmail.trim().toLowerCase();
+                if (users[cleanEmail] && !users[cleanEmail].banned) {
+                    currentUserEmail = cleanEmail;
                     initApp();
                 }
             }
@@ -604,6 +761,7 @@
 
         function initApp() {
             document.getElementById('authPage').classList.remove('active');
+            document.getElementById('forgotPasswordPage').classList.remove('active');
             document.getElementById('appPage').classList.add('active');
             document.getElementById('welcomeEmail').textContent = `البريد: ${currentUserEmail}`;
 
@@ -826,7 +984,7 @@
                     <td>${txCount} حركة</td>
                     <td>${statusBadge}</td>
                     <td>
-                        <button class="nav-btn" onclick="openEditModal('${email}')" style="background:#dbeafe; color:var(--primary); padding: 5px 10px; font-size: 0.8rem; margin-left:3px;"><i class="fa-solid fa-user-pen"></i> تعديل البيانات</button>
+                        <button class="nav-btn" onclick="openEditModal('${email}')" style="background:#dbeafe; color:var(--primary); padding: 5px 10px; font-size: 0.8rem; margin-left:3px;"><i class="fa-solid fa-user-pen"></i> تعديل</button>
                         ${email !== ADMIN_EMAIL ? `
                             <button class="nav-btn ${banBtnClass}" onclick="toggleBanEmail('${email}')" style="margin-left: 3px; padding: 5px 10px; font-size: 0.8rem;">${banBtnText}</button>
                             <button class="delete-btn" onclick="deleteUserEmail('${email}')" title="مسح الحساب نهائياً"><i class="fa-solid fa-trash-can"></i> مسح</button>
@@ -837,7 +995,6 @@
             });
         }
 
-        // فتح نافذة تعديل بيانات الحساب
         function openEditModal(email) {
             let users = JSON.parse(localStorage.getItem('app_email_users')) || {};
             if (!users[email]) return;
@@ -852,7 +1009,6 @@
             document.getElementById('editUserModal').classList.remove('active');
         }
 
-        // حفظ تعديل بيانات البريد أو كلمة المرور للمستخدم
         function saveUserEdit(e) {
             e.preventDefault();
             const oldEmail = document.getElementById('oldUserEmail').value;
@@ -863,7 +1019,6 @@
 
             if (!users[oldEmail]) return;
 
-            // إذا تغير الإيميل، تأكد أن الإيميل الجديد غير مستخدم
             if (oldEmail !== newEmail && users[newEmail]) {
                 alert('البريد الإلكتروني الجديد مستخدم بالفعل لحساب آخر!');
                 return;
@@ -875,8 +1030,6 @@
             if (oldEmail !== newEmail) {
                 delete users[oldEmail];
                 users[newEmail] = userData;
-                
-                // إذا قام الأدمن بتعديل إيميله هو نفسه
                 if (currentUserEmail === oldEmail) {
                     currentUserEmail = newEmail;
                     localStorage.setItem('current_logged_email', newEmail);
