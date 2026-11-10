@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تطبيق الدخل والمصاريف الشخصية</title>
+    <!-- استيراد خط عربي عالي الجودة -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- مكتبة الأيقونات FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --success: #16a34a;
+            --danger: #dc2626;
+            --dark: #1e293b;
+            --light: #f8fafc;
+            --gray: #64748b;
+            --border: #e2e8f0;
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Cairo', sans-serif;
+        }
+        body {
+            background-color: #f1f5f9;
+            color: var(--dark);
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        header h1 {
+            color: var(--primary);
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+        header p {
+            color: var(--gray);
+            font-size: 0.95rem;
+        }
+        /* بطاقات الملخص */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        .card {
+            background: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            text-align: center;
+            border-top: 4px solid var(--primary);
+        }
+        .card.income { border-top-color: var(--success); }
+        .card.expense { border-top-color: var(--danger); }
+        .card h3 {
+            font-size: 0.9rem;
+            color: var(--gray);
+            margin-bottom: 8px;
+        }
+        .card .amount {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        .card.income .amount { color: var(--success); }
+        .card.expense .amount { color: var(--danger); }
+        .card.net .amount { color: var(--primary); }
+
+        /* نموذج الإدخال */
+        .form-container {
+            background: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            margin-bottom: 25px;
+        }
+        .form-container h2 {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: var(--dark);
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 8px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        @media (max-width: 600px) {
+            .form-row { grid-template-columns: 1fr; }
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border 0.2s;
+        }
+        input:focus, select:focus {
+            border-color: var(--primary);
+        }
+        .btn {
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            width: 100%;
+            transition: background 0.2s;
+        }
+        .btn:hover { background: #1d4ed8; }
+        .btn-income { background: var(--success); }
+        .btn-income:hover { background: #15803d; }
+
+        /* سجل العمليات */
+        .transactions-container {
+            background: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+        }
+        .transactions-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 8px;
+        }
+        .transactions-header h2 {
+            font-size: 1.2rem;
+        }
+        .filter-buttons button {
+            background: #e2e8f0;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            margin-right: 5px;
+            font-weight: 600;
+        }
+        .filter-buttons button.active {
+            background: var(--primary);
+            color: #fff;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+        th, td {
+            padding: 12px 10px;
+            text-align: right;
+            border-bottom: 1px solid var(--border);
+        }
+        th {
+            background: var(--light);
+            color: var(--gray);
+        }
+        .badge {
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+        .badge.income { background: #dcfce7; color: var(--success); }
+        .badge.expense { background: #fee2e2; color: var(--danger); }
+        .delete-btn {
+            background: none;
+            border: none;
+            color: var(--danger);
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 20px;
+            color: var(--gray);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>إدارة الدخل والمصاريف</h1>
+            <p>تطبيقك الشخصي لتتبع الحسابات اليومية والشهرية بسهولة</p>
+        </header>
+
+        <!-- لوحة الملخص -->
+        <div class="cards-grid">
+            <div class="card income">
+                <h3>إجمالي الدخل</h3>
+                <div class="amount" id="totalIncome">0.00 ج.م</div>
+            </div>
+            <div class="card expense">
+                <h3>إجمالي المصاريف</h3>
+                <div class="amount" id="totalExpense">0.00 ج.م</div>
+            </div>
+            <div class="card net">
+                <h3>الصافي المتبقي</h3>
+                <div class="amount" id="netBalance">0.00 ج.م</div>
+            </div>
+        </div>
+
+        <!-- نموذج إضافة عملية جديدة -->
+        <div class="form-container">
+            <h2>إضافة حركة جديدة</h2>
+            <form id="transactionForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="type">نوع الحركة</label>
+                        <select id="type" required>
+                            <option value="expense">مصروف يومي</option>
+                            <option value="income">دخل شهري / إيراد</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="date">التاريخ</label>
+                        <input type="date" id="date" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="title">بيان الحركة / التفاصيل</label>
+                        <input type="text" id="title" placeholder="مثال: فاتورة كهرباء، راتب أساسي..." required>
+                    </div>
+                    <div class="form-group">
+                        <label for="category">التصنيف / الفئة</label>
+                        <select id="category" required>
+                            <option value="سكن ومرافق">سكن ومرافق</option>
+                            <option value="طعام ومشتريات">طعام ومشتريات</option>
+                            <option value="مواصلات وبنزين">مواصلات وبنزين</option>
+                            <option value="اتصالات وفواتير">اتصالات وفواتير</option>
+                            <option value="التزامات وأقساط">التزامات وأقساط</option>
+                            <option value="ترفيه وخروج">ترفيه وخروج</option>
+                            <option value="صحة وعلاج">صحة وعلاج</option>
+                            <option value="دخل أساسي / راتب">دخل أساسي / راتب</option>
+                            <option value="عمل حر وأرباح">عمل حر وأرباح</option>
+                            <option value="نثريات وطوارئ">نثريات وطوارئ</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="amount">المبلغ (جنيه مصري)</label>
+                    <input type="number" id="amount" step="0.01" placeholder="0.00" required>
+                </div>
+                <button type="submit" class="btn" id="submitBtn">حفظ الحركة</button>
+            </form>
+        </div>
+
+        <!-- سجل الحركات -->
+        <div class="transactions-container">
+            <div class="transactions-header">
+                <h2>السجل التفصيلي</h2>
+                <div class="filter-buttons">
+                    <button class="active" onclick="filterTransactions('all', this)">الكل</button>
+                    <button onclick="filterTransactions('income', this)">الدخل</button>
+                    <button onclick="filterTransactions('expense', this)">المصاريف</button>
+                </div>
+            </div>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>التاريخ</th>
+                            <th>البيان</th>
+                            <th>الفئة</th>
+                            <th>المبلغ</th>
+                            <th>إجراء</th>
+                        </tr>
+                    </thead>
+                    <tbody id="transactionsList">
+                        <!-- تضاف الحركات هنا تلقائياً -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ضبط تاريخ اليوم افتراضياً
+        document.getElementById('date').valueAsDate = new Date();
+
+        // استرجاع البيانات من الذاكرة المحلية (LocalStorage)
+        let transactions = JSON.parse(localStorage.getItem('my_wallet_transactions')) || [];
+
+        const form = document.getElementById('transactionForm');
+        const typeSelect = document.getElementById('type');
+        const submitBtn = document.getElementById('submitBtn');
+
+        // تغيير لون الزر بناءً على نوع الحركة
+        typeSelect.addEventListener('change', (e) => {
+            if (e.target.value === 'income') {
+                submitBtn.classList.add('btn-income');
+                submitBtn.textContent = 'حفظ الدخل';
+            } else {
+                submitBtn.classList.remove('btn-income');
+                submitBtn.textContent = 'حفظ الحركة';
+            }
+        });
+
+        // إضافة حركة جديدة
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const newTransaction = {
+                id: Date.now(),
+                type: typeSelect.value,
+                date: document.getElementById('date').value,
+                title: document.getElementById('title').value,
+                category: document.getElementById('category').value,
+                amount: parseFloat(document.getElementById('amount').value)
+            };
+
+            transactions.push(newTransaction);
+            saveAndRender();
+            form.reset();
+            document.getElementById('date').valueAsDate = new Date();
+            submitBtn.classList.remove('btn-income');
+            submitBtn.textContent = 'حفظ الحركة';
+        });
+
+        // حذف حركة
+        function deleteTransaction(id) {
+            transactions = transactions.filter(t => t.id !== id);
+            saveAndRender();
+        }
+
+        // حفظ البيانات وعرضها
+        function saveAndRender(filter = 'all') {
+            localStorage.setItem('my_wallet_transactions', JSON.stringify(transactions));
+            renderTransactions(filter);
+            updateSummary();
+        }
+
+        // تحديث إجماليات لوحة التحكم
+        function updateSummary() {
+            const totalIncome = transactions
+                .filter(t => t.type === 'income')
+                .reduce((sum, t) => sum + t.amount, 0);
+
+            const totalExpense = transactions
+                .filter(t => t.type === 'expense')
+                .reduce((sum, t) => sum + t.amount, 0);
+
+            const net = totalIncome - totalExpense;
+
+            document.getElementById('totalIncome').textContent = totalIncome.toLocaleString('en-US', {minimumFractionDigits: 2}) + ' ج.م';
+            document.getElementById('totalExpense').textContent = totalExpense.toLocaleString('en-US', {minimumFractionDigits: 2}) + ' ج.م';
+            document.getElementById('netBalance').textContent = net.toLocaleString('en-US', {minimumFractionDigits: 2}) + ' ج.م';
+        }
+
+        // عرض جدول الحركات
+        let currentFilter = 'all';
+        function filterTransactions(type, btn) {
+            currentFilter = type;
+            document.querySelectorAll('.filter-buttons button').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderTransactions(type);
+        }
+
+        function renderTransactions(filter) {
+            const listEl = document.getElementById('transactionsList');
+            listEl.innerHTML = '';
+
+            let filtered = transactions;
+            if (filter !== 'all') {
+                filtered = transactions.filter(t => t.type === filter);
+            }
+
+            // ترتيب من الأحدث للأقدم
+            filtered.sort((a, b) => new Date(b.date) - new Date(new Date(a.date)));
+
+            if (filtered.length === 0) {
+                listEl.innerHTML = `<tr><td colspan="5" class="empty-state">لا توجد بيانات مسجلة حالياً</td></tr>`;
+                return;
+            }
+
+            filtered.forEach(t => {
+                const tr = document.createElement('tr');
+                const badgeClass = t.type === 'income' ? 'income' : 'expense';
+                const sign = t.type === 'income' ? '+' : '-';
+                
+                tr.innerHTML = `
+                    <td>${t.date}</td>
+                    <td><strong>${t.title}</strong></td>
+                    <td><span class="badge ${badgeClass}">${t.category}</span></td>
+                    <td style="font-weight: 700; color: ${t.type === 'income' ? 'var(--success)' : 'var(--danger)'}">${sign}${t.amount.toLocaleString('en-US', {minimumFractionDigits: 2})} ج.م</td>
+                    <td><button class="delete-btn" onclick="deleteTransaction(${t.id})"><i class="fa-solid fa-trash"></i></button></td>
+                `;
+                listEl.appendChild(tr);
+            });
+        }
+
+        // التشغيل الأولي
+        renderTransactions();
+        updateSummary();
+    </script>
+</body>
+</html>
